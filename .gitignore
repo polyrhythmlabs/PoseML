@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- PoseML project artifacts ---
+# Model binaries are large; reproduced via `make models` / download scripts, not committed.
+models/tflite/*.tflite
+models/pytorch/*.pt
+models/pytorch/*.pth
+models/coreml/*.mlpackage/
+models/coreml/*.mlmodel
+# Keep directory structure
+!**/.gitkeep
+# Test/scratch media
+*.mp4
+*.mov
+scratch/

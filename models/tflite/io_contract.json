@@ -1,0 +1,304 @@
+{
+  "pose_detection.tflite": {
+    "inputs": [
+      {
+        "name": "input_1",
+        "shape": [
+          1,
+          224,
+          224,
+          3
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Identity",
+        "shape": [
+          1,
+          2254,
+          12
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_1",
+        "shape": [
+          1,
+          2254,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "num_tensors": 442
+  },
+  "pose_landmark_full.tflite": {
+    "inputs": [
+      {
+        "name": "input_1",
+        "shape": [
+          1,
+          256,
+          256,
+          3
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Identity",
+        "shape": [
+          1,
+          195
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_1",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_2",
+        "shape": [
+          1,
+          256,
+          256,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_3",
+        "shape": [
+          1,
+          64,
+          64,
+          39
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_4",
+        "shape": [
+          1,
+          117
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "num_tensors": 535
+  },
+  "pose_landmark_heavy.tflite": {
+    "inputs": [
+      {
+        "name": "input_1",
+        "shape": [
+          1,
+          256,
+          256,
+          3
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Identity",
+        "shape": [
+          1,
+          195
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_1",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_2",
+        "shape": [
+          1,
+          256,
+          256,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_3",
+        "shape": [
+          1,
+          64,
+          64,
+          39
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_4",
+        "shape": [
+          1,
+          117
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "num_tensors": 1098
+  },
+  "pose_landmark_lite.tflite": {
+    "inputs": [
+      {
+        "name": "input_1",
+        "shape": [
+          1,
+          256,
+          256,
+          3
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Identity",
+        "shape": [
+          1,
+          195
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_1",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_2",
+        "shape": [
+          1,
+          256,
+          256,
+          1
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_3",
+        "shape": [
+          1,
+          64,
+          64,
+          39
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      },
+      {
+        "name": "Identity_4",
+        "shape": [
+          1,
+          117
+        ],
+        "dtype": "<class 'numpy.float32'>",
+        "quantization": [
+          0.0,
+          0
+        ]
+      }
+    ],
+    "num_tensors": 492
+  }
+}

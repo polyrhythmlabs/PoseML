@@ -1,0 +1,47 @@
+[project]
+name = "poseml"
+version = "0.1.0"
+description = "Extremely optimized BlazePose pose detector for iOS — TFLite → PyTorch → CoreML conversion toolchain"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+
+# Core deps: needed to port weights and convert to CoreML.
+dependencies = [
+    "numpy>=1.26,<2.0",        # <2.0 for broad compat with coremltools / torch / cv2
+    "coremltools>=8.0,<9.0",   # CoreML conversion (ML Program, FP16, optimize)
+    "torch>=2.2,<3.0",         # PyTorch reimplementation + tracing for conversion
+    "pillow>=10.0",
+    "opencv-python>=4.9",
+]
+
+[dependency-groups]
+# Reference runtime: only needed to RUN the original .tflite models for numerical
+# parity checks. Kept separate so the core conversion env stays lean.
+# LiteRT is Google's modern standalone TFLite interpreter (replaces tflite-runtime).
+reference = [
+    "ai-edge-litert>=1.0",
+]
+# Model inspection / debugging.
+inspect = [
+    "netron>=7.0",
+]
+# Dev tooling.
+dev = [
+    "ruff>=0.5",
+    "pytest>=8.0",
+]
+
+[tool.uv]
+# Install all groups by default for `uv sync` during development.
+default-groups = ["reference", "inspect", "dev"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/poseml"]
