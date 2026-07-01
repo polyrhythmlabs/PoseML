@@ -26,6 +26,24 @@ class ModelSpec:
     note: str = ""
 
 
+# Exported-model I/O contract: tflite output tensor name -> Swift-friendly Core ML output
+# name, keyed by role. Shared by the converter (which names the outputs) and the verifier
+# (which reads them back). Kept role-keyed so the 3 landmark variants share one map.
+DETECTOR_OUTPUTS = [
+    ("Identity", "box_coords"),    # [1, 2254, 12] per-anchor box + keypoint regressions
+    ("Identity_1", "box_scores"),  # [1, 2254, 1] per-anchor logits
+]
+LANDMARK_OUTPUTS = [
+    ("Identity", "landmarks"),          # [1, 195] 39 x (x,y,z,visibility,presence)
+    ("Identity_1", "pose_flag"),        # [1, 1] pose-presence logit
+    ("Identity_4", "world_landmarks"),  # [1, 117] 39 x metric (x,y,z)
+]
+LANDMARK_EXTRA_OUTPUTS = [
+    ("Identity_2", "segmentation"),  # [1, 256, 256, 1] mask
+    ("Identity_3", "heatmap"),       # [1, 64, 64, 39]
+]
+
+
 MODELS: dict[str, ModelSpec] = {
     "pose_detection": ModelSpec(
         name="pose_detection.tflite",
@@ -56,3 +74,25 @@ MODELS: dict[str, ModelSpec] = {
         note="Most accurate, heaviest.",
     ),
 }
+
+
+def spec_for(path) -> ModelSpec:
+    """Look up the ModelSpec for a .tflite path (or filename). Raises ValueError if unknown."""
+    name = Path(path).name
+    for spec in MODELS.values():
+        if spec.name == name:
+            return spec
+    raise ValueError(f"{name} is not in the model manifest")
+
+
+def output_map(role: str, *, all_outputs: bool = False) -> list[tuple[str, str]]:
+    """Ordered (tflite name, Core ML name) outputs to export for a model role.
+
+    Landmark exports only the ship heads by default; all_outputs re-adds mask + heatmap.
+    """
+    if role == "detector":
+        return list(DETECTOR_OUTPUTS)
+    outs = list(LANDMARK_OUTPUTS)
+    if all_outputs:
+        outs += LANDMARK_EXTRA_OUTPUTS
+    return outs

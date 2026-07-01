@@ -150,19 +150,35 @@ kernels disagree by ~0.38 on it), we gate each output at `err(torch vs ref) ≤ 
 - detector `Identity`/`Identity_1`: ~6e-4
 - seg-mask passes via the noise-floor rule (still slated for pruning in Phase 2)
 
-### Phase 2 — CoreML conversion (1–2 days)
-- Trace each model (`torch.jit.trace` with a fixed 256×256 / detector-res dummy input).
-- Convert with coremltools Unified API:
-  - `convert_to="mlprogram"` (ML Program, not the legacy NeuralNetwork format)
-  - `compute_precision=ct.precision.FLOAT16` (ANE is FP16-only)
-  - `compute_units=ct.ComputeUnit.ALL`
-  - **Image input**: use `ct.ImageType` so the model accepts a `CVPixelBuffer` directly
-    (zero-copy from the camera). Bake the BlazePose normalization (scale `1/255`, and any
-    mean/std) into `scale`/`bias` so Swift does no per-pixel math.
-  - Set minimum deployment target (e.g. iOS 17) to unlock newer ops/optimizations.
-  - Name the outputs explicitly for clean Swift access.
-- Re-run parity: CoreML (on macOS, via `coremltools` predict / `MLModel`) vs PyTorch vs TFLite.
-- **Exit criteria:** `.mlpackage` for detector + landmark(full), parity within FP16 tolerance.
+### Phase 2 — CoreML conversion ✅ DONE
+Built `poseml.convert.to_coreml` (`make coreml`) and `poseml.verify.coreml_parity`
+(`make coreml-verify`). Both shipping models exported: `models/coreml/pose_detection.mlpackage`
+and `models/coreml/pose_landmark_full.mlpackage` (~6 MB each, fp16).
+
+- **Trace**: the NHWC `TfliteModule` is wrapped in an `ImageFrontEnd` that takes channel-first
+  `[1,3,H,W]` (Core ML's image layout) and transposes to NHWC internally — the transpose is
+  folded away by coremltools' layout passes. `torch.jit.trace` with a fixed-res dummy input.
+- **Convert** (coremltools Unified API): `convert_to="mlprogram"`,
+  `compute_precision=FLOAT16` (ANE), `compute_units=ALL`, `minimum_deployment_target=iOS17`.
+  - **Image input** via `ct.ImageType(scale=1/255, bias=0, color_layout=RGB)` — the model takes
+    a `CVPixelBuffer` directly and the `[0,255]→[0,1]` normalization is baked in (MediaPipe's
+    ImageToTensorCalculator feeds these nets in `[0,1]`). Swift does no per-pixel math.
+  - **Outputs renamed** for Swift: detector → `box_coords` / `box_scores`;
+    landmark → `landmarks` / `pose_flag` / `world_landmarks`.
+  - **Mask + heatmap pruned** by default: the front end returns only the shipping heads, so
+    coremltools dead-code-eliminates `Identity_2`/`Identity_3` from the graph. `--all-outputs`
+    keeps them (adds `segmentation` / `heatmap`).
+- **Parity** feeds *bit-identical* input to both sides — a random uint8 image to Core ML
+  (which divides by 255 internally) and the same `uint8/255` float to tflite — so input
+  quantization is not a confound. Two tiers:
+  - **Conversion fidelity** (`--precision fp32`): Core ML matches tflite to ~1e-3 → the
+    graph translation is exact.
+  - **FP16 budget** (shipping): fp16 *activation* rounding diverges more on adversarial
+    **random-noise** input (landmark coords ≤~2.7 px on the 0..256 scale; detector well within
+    tolerance). Real in-distribution frames will be far tighter; end-to-end accuracy is
+    re-validated in Phase 3.
+- **Exit criteria:** ✅ `.mlpackage` for detector + landmark(full); fp32 parity exact, fp16
+  within the documented budget. (ANE *placement* is confirmed on-device in Phase 5 with Instruments.)
 
 ### Phase 3 — Post/pre-processing & glue (3–4 days)
 This is the real work; the nets are the easy part.

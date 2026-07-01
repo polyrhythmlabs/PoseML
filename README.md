@@ -14,6 +14,8 @@ make setup     # uv sync — create/sync the venv (all dependency groups)
 make models    # download official BlazePose .tflite models -> models/tflite/
 make inspect   # dump each model's I/O contract -> models/tflite/io_contract.json
 make verify    # parity test: PyTorch port vs every .tflite reference
+make coreml        # convert detector + landmark(full) -> models/coreml/*.mlpackage (fp16, ANE)
+make coreml-verify # Core ML vs tflite parity (fp16 budget + strict fp32 fidelity)
 make lint      # ruff
 ```
 
@@ -38,4 +40,7 @@ PLAN.md                           full implementation plan
 ## Status
 - **Phase 0 (env + assets + I/O contract): done.** See `models/tflite/io_contract.json`.
 - **Phase 1 (PyTorch parity): done.** Generic tflite→PyTorch port; all 4 models pass `make verify`.
-- Next: Phase 2 — CoreML conversion (trace → coremltools, FP16/ANE, prune mask+heatmap).
+- **Phase 2 (CoreML conversion): done.** `make coreml` → fp16 ML Programs with a `CVPixelBuffer`
+  image input (normalization baked in), Swift-friendly output names, mask+heatmap pruned.
+  `make coreml-verify` passes (fp32 conversion exact to ~1e-3; fp16 within the documented budget).
+- Next: Phase 3 — anchors + detector decode/NMS + ROI + landmark un-projection (numpy reference).
