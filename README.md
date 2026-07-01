@@ -13,8 +13,12 @@ Fully self-contained via [`uv`](https://docs.astral.sh/uv/) — pinned to Python
 make setup     # uv sync — create/sync the venv (all dependency groups)
 make models    # download official BlazePose .tflite models -> models/tflite/
 make inspect   # dump each model's I/O contract -> models/tflite/io_contract.json
+make verify    # parity test: PyTorch port vs every .tflite reference
 make lint      # ruff
 ```
+
+The tflite→PyTorch port lives in `poseml.tflite_port` — `build("models/tflite/pose_landmark_full.tflite")`
+returns a traceable `nn.Module` numerically equivalent to the .tflite (no separate checkpoint).
 
 Dependency groups (in `pyproject.toml`):
 - **core** — `coremltools`, `torch`, `numpy`, `opencv`, `pillow` (port + convert)
@@ -33,4 +37,5 @@ PLAN.md                           full implementation plan
 
 ## Status
 - **Phase 0 (env + assets + I/O contract): done.** See `models/tflite/io_contract.json`.
-- Next: Phase 1 — PyTorch parity against the `.tflite` reference.
+- **Phase 1 (PyTorch parity): done.** Generic tflite→PyTorch port; all 4 models pass `make verify`.
+- Next: Phase 2 — CoreML conversion (trace → coremltools, FP16/ANE, prune mask+heatmap).

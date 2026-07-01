@@ -12,6 +12,7 @@ dependencies = [
     "torch>=2.2,<3.0",         # PyTorch reimplementation + tracing for conversion
     "pillow>=10.0",
     "opencv-python>=4.9",
+    "tflite>=2.10",            # pure-python flatbuffer schema (only needs flatbuffers; no protobuf/TF) — read op options/graph
 ]
 
 [dependency-groups]
@@ -38,6 +39,10 @@ default-groups = ["reference", "inspect", "dev"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
+addopts = "-q"
 
 [build-system]
 requires = ["hatchling"]

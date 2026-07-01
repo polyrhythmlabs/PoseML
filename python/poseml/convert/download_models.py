@@ -17,11 +17,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from poseml.models_manifest import MODELS, ModelSpec
+from poseml.models_manifest import MODELS, TFLITE_DIR, ModelSpec
 
-# Repo root = three parents up from this file (python/poseml/convert/ -> repo).
-REPO_ROOT = Path(__file__).resolve().parents[3]
-DEST_DIR = REPO_ROOT / "models" / "tflite"
+DEST_DIR = TFLITE_DIR
 
 
 def _sha256(path: Path) -> str:
@@ -78,7 +76,6 @@ def main() -> int:
         print(f"  {status}: {digest}  [{pinned}]")
         results.append((status, spec, digest, pinned))
 
-    errors = [r for r in results if r[0] == "error"]
     print("\n=== summary ===")
     for status, spec, digest, *_ in results:
         print(f"  {status:11} {spec.name:28} {digest[:16] if digest else ''}")
@@ -90,7 +87,7 @@ def main() -> int:
         for name, digest in unpinned:
             print(f'  {name}: "{digest}"')
 
-    return 1 if errors else 0
+    return 1 if any(r[0] == "error" for r in results) else 0
 
 
 if __name__ == "__main__":

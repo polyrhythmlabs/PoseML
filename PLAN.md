@@ -120,13 +120,35 @@ PoseML/
   `Identity` (+ maybe `Identity_4`); **prune `Identity_2`/`Identity_3` (mask + heatmap) from the
   CoreML graph** unless a feature needs them — they're a large chunk of compute/output bandwidth.
 
-### Phase 1 — PyTorch parity (2–3 days)
-- Bring in / adapt the `zmurez/MediaPipePyTorch` model definitions for detector + landmark.
-- Load weights from the `.tflite` files; handle the known **stride-2 conv padding** difference
-  between TFLite (`SAME`) and PyTorch (explicit pad) — this is the most common source of drift.
-- Build `python/verify/parity.py`: run the same preprocessed input through TFLite and PyTorch,
-  assert max abs error per output tensor is below a threshold (target < 1e-3 after fixing padding).
-- **Exit criteria:** PyTorch outputs match TFLite within tolerance on ≥10 diverse test images.
+### Phase 1 — PyTorch parity ✅ DONE
+Approach changed after Phase 0: **every op is standard** (CONV_2D, DEPTHWISE_CONV_2D, ADD, PAD,
+RESHAPE, RESIZE_BILINEAR, MAX_POOL_2D, CONCATENATION, DEPTH_TO_SPACE, LOGISTIC — no custom ops).
+Rather than hand-adapt `zmurez/MediaPipePyTorch` (which targets an older BlazePose version), and
+rather than tflite→ONNX→torch (which would pull `tensorflow`/`onnx` and force a protobuf downgrade
+that breaks coremltools' `protobuf 7.35`), we built a **small generic tflite→PyTorch graph
+converter** (`poseml.tflite_port`):
+- `parser.py` — reads graph structure + op options from the flatbuffer (pure-python `tflite`
+  schema pkg) and resolved fp16→f32 weights from the LiteRT interpreter. Folds `DENSIFY` (sparse
+  detector weights) to dense via a zero-input reference invoke.
+- `torch_graph.py` — `TfliteModule`, a traceable `nn.Module` that executes the graph. Tensors kept
+  **NHWC-canonical** (matches TFLite axis semantics); conv/pool transpose to NCHW per-op (coremltools
+  folds these later). `build(path)` returns the module.
+
+Bugs found & fixed via intermediate-tensor diffing:
+- **`DEPTH_TO_SPACE`**: TFLite uses **DCR ordering** (channel innermost) ≠ `F.pixel_shuffle` (CRD).
+  Reimplemented with explicit reshape/permute. (Was the detector's only structural break.)
+- Resize: TFLite `half_pixel_centers=True` → torch `align_corners=False` (verified to 1e-7 isolated).
+- Explicit-`PAD` + `VALID` stride-2 convs (not `SAME`) — so the classic padding-drift trap didn't apply.
+
+**Parity gate** (`poseml.verify.parity`, `make verify`): because fp16 weights make bit-exact
+impossible and the seg-mask is numerically ill-conditioned (TFLite's *own* XNNPACK vs reference
+kernels disagree by ~0.38 on it), we gate each output at `err(torch vs ref) ≤ max(5e-3, 3×|xnnpack−ref|)`
+— "match TFLite at least as well as TFLite matches itself."
+
+**Result — all 4 models PASS** (pytest `python/tests/test_parity.py`):
+- landmark `Identity` (33 pose coords): ~1–10e-3 (well-conditioned outputs ≤5e-3)
+- detector `Identity`/`Identity_1`: ~6e-4
+- seg-mask passes via the noise-floor rule (still slated for pruning in Phase 2)
 
 ### Phase 2 — CoreML conversion (1–2 days)
 - Trace each model (`torch.jit.trace` with a fixed 256×256 / detector-res dummy input).

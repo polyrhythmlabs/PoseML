@@ -9,6 +9,10 @@ future downloads are integrity-checked and reproducible.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TFLITE_DIR = REPO_ROOT / "models" / "tflite"
 
 BUCKET = "https://storage.googleapis.com/mediapipe-assets"
 

@@ -13,23 +13,11 @@ Usage:
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-TFLITE_DIR = REPO_ROOT / "models" / "tflite"
-OUT_PATH = REPO_ROOT / "models" / "tflite" / "io_contract.json"
+from poseml.litert import make_interpreter
+from poseml.models_manifest import TFLITE_DIR
 
-
-def _load_interpreter(path: Path):
-    try:
-        from ai_edge_litert.interpreter import Interpreter
-    except ImportError as e:  # pragma: no cover
-        raise SystemExit(
-            "ai-edge-litert not installed. Run: uv sync --group reference"
-        ) from e
-    interp = Interpreter(model_path=str(path))
-    interp.allocate_tensors()
-    return interp
+OUT_PATH = TFLITE_DIR / "io_contract.json"
 
 
 def _describe(details: list[dict]) -> list[dict]:
@@ -55,7 +43,7 @@ def main() -> int:
 
     contract: dict[str, dict] = {}
     for path in models:
-        interp = _load_interpreter(path)
+        interp = make_interpreter(path)
         info = {
             "inputs": _describe(interp.get_input_details()),
             "outputs": _describe(interp.get_output_details()),
